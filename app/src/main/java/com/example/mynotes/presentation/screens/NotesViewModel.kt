@@ -30,21 +30,21 @@ class NotesViewModel : ViewModel(){
     private val _state = MutableStateFlow(NotesScreenState())
     val state = _state.asStateFlow()
 
-
+//    TODO() Добавить добавление заметок и редактирования use case и проверить их
 
     init {
-        query
+        query // Обновляем стейт добавляя запрос поиска
             .onEach { input ->
                 _state.update { it.copy(query = input) }
             }
-            .flatMapLatest { input ->
+            .flatMapLatest { input -> // каждое изменение поиска останавливает и переключает поток если надо
                 if (input.isBlank()){
                     getAllNotesUseCase()
                 } else {
                     searchNotesUseCase(input)
                 }
             }
-            .onEach { notes ->
+            .onEach { notes -> // добавляем ноты в стейт для коорректного отображения закрепленных и остальных
                 val pinnedNotes = notes.filter { it.isPinned }
                 val otherNotes = notes.filter { !it.isPinned }
                 _state.update {
@@ -57,6 +57,7 @@ class NotesViewModel : ViewModel(){
             .launchIn(viewModelScope)
     }
 
+    //обработка команд
     fun processCommand(command: NotesCommands){
         viewModelScope.launch {
             when(command){
@@ -71,6 +72,7 @@ class NotesViewModel : ViewModel(){
     }
 }
 
+//команды экрана NoteScreen
 sealed interface NotesCommands{
     data class InputSearchQuery(val query: String): NotesCommands
 
