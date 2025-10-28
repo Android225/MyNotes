@@ -1,13 +1,12 @@
 @file:Suppress("OPT_IN_USAGE")
 
-package com.example.mynotes.presentation.screens
+package com.example.mynotes.presentation.screens.notes
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mynotes.data.TestNotesRepositoryImpl
 import com.example.mynotes.domain.GetAllNotesUseCase
-import com.example.mynotes.domain.GetNoteUseCase
 import com.example.mynotes.domain.Note
 import com.example.mynotes.domain.SearchNotesUseCase
 import com.example.mynotes.domain.SwitchPinnedStatusUseCase

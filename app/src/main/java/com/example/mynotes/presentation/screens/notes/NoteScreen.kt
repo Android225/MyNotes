@@ -1,7 +1,6 @@
-package com.example.mynotes.presentation.screens
+package com.example.mynotes.presentation.screens.notes
 
 import android.content.Context
-import android.widget.Space
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
