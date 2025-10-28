@@ -2,6 +2,7 @@
 
 package com.example.mynotes.presentation.screens
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mynotes.data.TestNotesRepositoryImpl
@@ -19,9 +20,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 
-class NotesViewModel : ViewModel(){
+class NotesViewModel(context: Context) : ViewModel(){
 
+    //добавить context при реализации готового репозитория с бд
     private val repository = TestNotesRepositoryImpl
+
     private val getAllNotesUseCase = GetAllNotesUseCase(repository)
     private val switchPinnedStatusUseCase = SwitchPinnedStatusUseCase(repository)
     private val searchNotesUseCase = SearchNotesUseCase(repository)
