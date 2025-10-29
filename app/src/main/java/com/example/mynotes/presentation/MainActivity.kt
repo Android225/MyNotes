@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.example.mynotes.presentation.navigation.NavGraph
 import com.example.mynotes.presentation.screens.creation.CreateNoteScreen
 import com.example.mynotes.presentation.screens.editing.EditNoteScreen
 import com.example.mynotes.presentation.screens.notes.NoteScreen
@@ -15,21 +16,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-
-//            EditNoteScreen(
-//                noteId = 5,
-//                onFinished = {}
-//            )
-
-//            CreateNoteScreen(
-//                onFinished = {}
-//            )
-            NoteScreen(
-                onNoteClick = {},
-                onAddNoteClick = {
-                    Log.d("NoteScreen","ADDDD")
-                }
-            )
+            NavGraph()
         }
     }
 }
