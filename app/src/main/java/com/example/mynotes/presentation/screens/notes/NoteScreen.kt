@@ -16,10 +16,12 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -34,11 +36,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mynotes.R
 import com.example.mynotes.domain.Note
 import com.example.mynotes.presentation.ui.theme.OtherNotesColors
 import com.example.mynotes.presentation.ui.theme.PinnedNotesColors
@@ -57,7 +61,19 @@ fun NoteScreen(
 
     Scaffold(
         modifier = modifier,
-        //добавить плавающую кнопку
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddNoteClick,
+                containerColor = MaterialTheme.colorScheme.onPrimary,
+                contentColor = MaterialTheme.colorScheme.primary,
+                shape = CircleShape
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_add_note),
+                    contentDescription = "Add Note Button"
+                )
+            }
+        }
     ) { innerPadding ->
 
         LazyColumn(
