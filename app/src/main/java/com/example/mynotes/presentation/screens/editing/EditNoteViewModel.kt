@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class EditNoteViewModel(private val noteId: Int,context: Context) : ViewModel(){
+class EditNoteViewModel(private val noteId: Int, context: Context) : ViewModel() {
 
     private val repository = TestNotesRepositoryImpl
     private val editNoteUseCase = EditNoteUseCase(repository)
@@ -31,19 +31,90 @@ class EditNoteViewModel(private val noteId: Int,context: Context) : ViewModel(){
             }
         }
     }
+
+    fun processCommand(command: EditNoteCommand) {
+        when (command) {
+            EditNoteCommand.Back -> {
+                _state.update { EditNoteState.Finished }
+            }
+
+            EditNoteCommand.Delete -> {
+                viewModelScope.launch {
+                    _state.update { previousState ->
+                        if (previousState is EditNoteState.Editing) {
+                            val note = previousState.note
+                            deleteNoteUseCase(note.id)
+                            EditNoteState.Finished
+                        } else {
+                            previousState
+                        }
+                    }
+                }
+            }
+
+            is EditNoteCommand.InputContent -> {
+                _state.update { previousState ->
+                    if (previousState is EditNoteState.Editing) {
+                        val newNote = previousState.note.copy(content = command.content)
+                        previousState.copy(note = newNote)
+                    } else {
+                        previousState
+                    }
+                }
+            }
+
+            is EditNoteCommand.InputTitle -> {
+                _state.update { previousState ->
+                    if (previousState is EditNoteState.Editing) {
+                        val newNote = previousState.note.copy(title = command.title)
+                        previousState.copy(note = newNote)
+                    } else {
+                        previousState
+                    }
+                }
+            }
+
+            EditNoteCommand.Save -> {
+                viewModelScope.launch {
+                    _state.update { previousState ->
+                        if (previousState is EditNoteState.Editing) {
+                            val note = previousState.note
+                            editNoteUseCase(note)
+                            EditNoteState.Finished
+                        } else {
+                            previousState
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
-sealed interface EditNoteState{
+sealed interface EditNoteState {
 
-    data object Initial: EditNoteState
+    data object Initial : EditNoteState
 
     data class Editing(
         val note: Note
-    ): EditNoteState {
+    ) : EditNoteState {
 
         val isSaveEnable: Boolean
             get() = note.title.isNotBlank() && note.content.isNotBlank()
     }
 
-    data object Finished: EditNoteState
+    data object Finished : EditNoteState
+}
+
+sealed interface EditNoteCommand {
+
+    data class InputTitle(val title: String) : EditNoteCommand
+
+    data class InputContent(val content: String) : EditNoteCommand
+
+    data object Save : EditNoteCommand
+
+    data object Delete : EditNoteCommand
+
+    data object Back : EditNoteCommand
 }
