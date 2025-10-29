@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.example.mynotes.presentation.screens.creation.CreateNoteScreen
+import com.example.mynotes.presentation.screens.editing.EditNoteScreen
 import com.example.mynotes.presentation.screens.notes.NoteScreen
 
 class MainActivity : ComponentActivity() {
@@ -12,9 +13,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            CreateNoteScreen(
+
+            EditNoteScreen(
+                noteId = 5,
                 onFinished = {}
             )
+
+//            CreateNoteScreen(
+//                onFinished = {}
+//            )
 //            NoteScreen(
 //                onNoteClick = {},
 //                onAddNoteClick = {}
