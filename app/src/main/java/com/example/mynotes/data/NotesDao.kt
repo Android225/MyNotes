@@ -19,7 +19,7 @@ interface NotesDao {
     fun searchNotes(query: String): Flow<List<NoteDbModel>>
 
     @Query("DELETE FROM notes WHERE id == :noteId")
-    fun deleteNote(noteId: Int)
+    suspend fun deleteNote(noteId: Int)
 
     @Query("UPDATE notes SET isPinned = NOT isPinned WHERE id == :noteId")
     suspend fun switchPinnedStatus(noteId: Int)

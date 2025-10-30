@@ -5,9 +5,10 @@ package com.example.mynotes.presentation.screens.notes
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mynotes.data.TestNotesRepositoryImpl
+import com.example.mynotes.data.NotesRepositoryImpl
 import com.example.mynotes.domain.GetAllNotesUseCase
 import com.example.mynotes.domain.Note
+import com.example.mynotes.domain.NotesRepository
 import com.example.mynotes.domain.SearchNotesUseCase
 import com.example.mynotes.domain.SwitchPinnedStatusUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +22,7 @@ import kotlinx.coroutines.launch
 
 class NotesViewModel(context: Context) : ViewModel(){
 
-    //добавить context при реализации готового репозитория с бд
-    private val repository = TestNotesRepositoryImpl
+    private val repository = NotesRepositoryImpl.getInstance(context)
 
     private val getAllNotesUseCase = GetAllNotesUseCase(repository)
     private val switchPinnedStatusUseCase = SwitchPinnedStatusUseCase(repository)
@@ -31,8 +31,6 @@ class NotesViewModel(context: Context) : ViewModel(){
     private val query = MutableStateFlow("")
     private val _state = MutableStateFlow(NotesScreenState())
     val state = _state.asStateFlow()
-
-//    TODO() Добавить добавление заметок и редактирования use case и проверить их
 
     init {
         query // Обновляем стейт добавляя запрос поиска
