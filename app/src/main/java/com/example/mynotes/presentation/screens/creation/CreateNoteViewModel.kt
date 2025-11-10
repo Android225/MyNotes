@@ -6,15 +6,17 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mynotes.data.NotesRepositoryImpl
 import com.example.mynotes.domain.AddNoteUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class CreateNoteViewModel(context: Context) : ViewModel() {
-
-    private val repository = NotesRepositoryImpl.getInstance(context)
-    private val addNoteUseCase = AddNoteUseCase(repository)
+@HiltViewModel
+class CreateNoteViewModel @Inject constructor(
+    private val addNoteUseCase : AddNoteUseCase
+) : ViewModel() {
 
     private val _state = MutableStateFlow<CreationNoteState>(CreationNoteState.Creation())
     val state = _state.asStateFlow()
