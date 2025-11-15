@@ -5,6 +5,7 @@ package com.example.mynotes.presentation.screens.editing
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mynotes.domain.ContentItem
 import com.example.mynotes.presentation.screens.creation.CreationNoteCommand
 
 @Composable
@@ -41,7 +43,7 @@ fun EditNoteScreen(
     modifier: Modifier = Modifier,
     noteId: Int,
     viewModel: EditNoteViewModel = hiltViewModel(
-        creationCallback = {factory: EditNoteViewModel.Factory ->
+        creationCallback = { factory: EditNoteViewModel.Factory ->
             factory.create(noteId)
         }
     ),
@@ -52,126 +54,111 @@ fun EditNoteScreen(
 
     when (currentState) {
         is EditNoteState.Editing -> {
-        Scaffold(
-            modifier = modifier,
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "Editing",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                        actionIconContentColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    actions = {
-                        Icon(
-                            modifier = Modifier
-                                .padding(end = 16.dp)
-                                .clickable {
-                                    viewModel.processCommand(EditNoteCommand.Delete)
-                                },
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete Edited Note"
-                        )
-                    },
-                    navigationIcon = {
-                        Icon(
-                            modifier = Modifier
-                                .padding(start = 16.dp, end = 8.dp)
-                                .clickable {
-                                    viewModel.processCommand(EditNoteCommand.Back)
-                                },
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                )
-            }
-        ) { innerPadding ->
-            Column (
-                modifier = Modifier.padding(innerPadding)
-            ){
-                TextField(
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(horizontal = 8.dp),
-                    value = currentState.note.title,
-                    onValueChange = {
-                        viewModel.processCommand(EditNoteCommand.InputTitle(it))
-                    },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    textStyle = TextStyle(
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    placeholder = {
-                        Text(
-                            text = "Title",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-                        )
-                    }
-                )
-                Text(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    text = System.currentTimeMillis().toString(),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                TextField(
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(horizontal = 10.dp)
-                        .weight(1f),
-                    value = currentState.note.content,
-                    onValueChange = {
-                        viewModel.processCommand(EditNoteCommand.InputContent(it))
-                    },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    textStyle = TextStyle(
-                        fontSize = 24.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    placeholder = {
-                        Text(
-                            text = "Content...",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-                        )
-                    }
-                )
-                Button(
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(horizontal = 10.dp),
-                    onClick = {
-                        viewModel.processCommand(EditNoteCommand.Save)
-                    },
-                    shape = RoundedCornerShape(10.dp),
-                    enabled = currentState.isSaveEnable
-                ) {
-                    Text(
-                        text = "Save"
+            Scaffold(
+                modifier = modifier,
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                text = "Editing",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent,
+                            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                            actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        actions = {
+                            Icon(
+                                modifier = Modifier
+                                    .padding(end = 16.dp)
+                                    .clickable {
+                                        viewModel.processCommand(EditNoteCommand.Delete)
+                                    },
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete Edited Note"
+                            )
+                        },
+                        navigationIcon = {
+                            Icon(
+                                modifier = Modifier
+                                    .padding(start = 16.dp, end = 8.dp)
+                                    .clickable {
+                                        viewModel.processCommand(EditNoteCommand.Back)
+                                    },
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
                     )
                 }
+            ) { innerPadding ->
+                Column(
+                    modifier = Modifier.padding(innerPadding)
+                ) {
+                    TextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        value = currentState.note.title,
+                        onValueChange = {
+                            viewModel.processCommand(EditNoteCommand.InputTitle(it))
+                        },
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        textStyle = TextStyle(
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
+                        placeholder = {
+                            Text(
+                                text = "Title",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                            )
+                        }
+                    )
+                    Text(
+                        modifier = Modifier.padding(horizontal = 24.dp),
+                        text = System.currentTimeMillis().toString(),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    currentState.note.content.filterIsInstance<ContentItem.Text>()
+                        .forEach { contentItem ->
+                            TextContent(
+                                modifier = Modifier.weight(1f),
+                                text = contentItem.content,
+                                onTextChanged = {
+                                    viewModel.processCommand(EditNoteCommand.InputContent(it))
+                                }
+                            )
+                        }
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 10.dp),
+                        onClick = {
+                            viewModel.processCommand(EditNoteCommand.Save)
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        enabled = currentState.isSaveEnable
+                    ) {
+                        Text(
+                            text = "Save"
+                        )
+                    }
+                }
             }
-        }
         }
 
         EditNoteState.Finished -> {
@@ -184,4 +171,37 @@ fun EditNoteScreen(
 
         }
     }
+}
+
+@Composable
+private fun TextContent(
+    modifier: Modifier = Modifier,
+    text: String,
+    onTextChanged: (String) -> Unit
+) {
+    TextField(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp),
+        value = text,
+        onValueChange = onTextChanged,
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        ),
+        textStyle = TextStyle(
+            fontSize = 24.sp,
+            color = MaterialTheme.colorScheme.onSurface
+        ),
+        placeholder = {
+            Text(
+                text = "Content...",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+            )
+        }
+    )
 }

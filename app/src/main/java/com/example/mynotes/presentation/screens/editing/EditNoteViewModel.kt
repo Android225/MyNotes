@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mynotes.data.NotesRepositoryImpl
+import com.example.mynotes.domain.ContentItem
 import com.example.mynotes.domain.DeleteNoteUseCase
 import com.example.mynotes.domain.EditNoteUseCase
 import com.example.mynotes.domain.GetNoteUseCase
@@ -66,7 +67,9 @@ class EditNoteViewModel @AssistedInject constructor(
             is EditNoteCommand.InputContent -> {
                 _state.update { previousState ->
                     if (previousState is EditNoteState.Editing) {
-                        val newNote = previousState.note.copy(content = command.content)
+                        val newContent = ContentItem.Text(content = command.content)
+                        //temp listOf()
+                        val newNote = previousState.note.copy(content = listOf(newContent))
                         previousState.copy(note = newNote)
                     } else {
                         previousState
@@ -111,7 +114,17 @@ sealed interface EditNoteState {
     ) : EditNoteState {
 
         val isSaveEnable: Boolean
-            get() = note.title.isNotBlank() && note.content.isNotBlank()
+            get() {
+                return when {
+                    note.title.isBlank() -> false
+                    note.content.isEmpty() -> false
+                    else -> {
+                        note.content.any {
+                            it !is ContentItem.Text || it.content.isNotBlank()
+                        }
+                    }
+                }
+            }
     }
 
     data object Finished : EditNoteState

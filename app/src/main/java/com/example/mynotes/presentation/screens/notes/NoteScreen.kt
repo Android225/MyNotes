@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.mynotes.R
+import com.example.mynotes.domain.ContentItem
 import com.example.mynotes.domain.Note
 import com.example.mynotes.presentation.ui.theme.OtherNotesColors
 import com.example.mynotes.presentation.ui.theme.PinnedNotesColors
@@ -273,12 +274,16 @@ fun NoteCard(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = note.content,
-            fontSize = 14.sp,
-            maxLines = 3,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+
+        note.content.filterIsInstance<ContentItem.Text>().joinToString("\n") { it.content }.let{
+            Text(
+                text = it,
+                fontSize = 14.sp,
+                maxLines = 3,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
     }
 }
