@@ -45,6 +45,8 @@ android {
 dependencies {
     //serialization
     implementation(libs.kotlinx.serialization.json)
+    implementation("io.coil-kt.coil3:coil-compose:3.3.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
 
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.hilt.android)
