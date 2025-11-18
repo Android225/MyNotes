@@ -12,6 +12,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mynotes.domain.ContentItem
 import com.example.mynotes.presentation.ui.theme.CustomIcons
 
 @Composable
@@ -50,21 +52,23 @@ fun CreateNoteScreen(
     modifier: Modifier = Modifier,
     viewModel: CreateNoteViewModel = hiltViewModel(),
     onFinished: () -> Unit
-){
+) {
     val state = viewModel.state.collectAsState()
     val currentState = state.value
 
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
-        onResult = {
-            Log.d("CreateNoteScreen",it.toString())
+        onResult = { uri ->
+            uri?.let {
+                viewModel.processCommand(CreationNoteCommand.AddImage(it))
+            }
         }
     )
 
-    when(currentState){
+    when (currentState) {
         is CreationNoteState.Creation -> {
-            Scaffold (
-              modifier = modifier,
+            Scaffold(
+                modifier = modifier,
                 topBar = {
                     TopAppBar(
                         title = {
@@ -94,7 +98,7 @@ fun CreateNoteScreen(
                             Icon(
                                 modifier = Modifier
                                     .padding(start = 15.dp, end = 8.dp)
-                                    .clickable{
+                                    .clickable {
                                         imagePicker.launch("image/*")
                                     },
                                 imageVector = CustomIcons.AddPhotoAlternate,
@@ -105,11 +109,12 @@ fun CreateNoteScreen(
                     )
                 }
             ) { innerPadding ->
-                Column (
+                Column(
                     modifier = Modifier.padding(innerPadding)
-                ){
+                ) {
                     TextField(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .padding(horizontal = 8.dp),
                         value = currentState.title,
                         onValueChange = {
@@ -141,36 +146,41 @@ fun CreateNoteScreen(
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    TextField(
-                        modifier = Modifier.fillMaxWidth()
-                            .padding(horizontal = 10.dp)
-                            .weight(1f),
-                        value = currentState.content,
-                        onValueChange = {
-                            viewModel.processCommand(CreationNoteCommand.InputContent(it))
-                        },
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                        textStyle = TextStyle(
-                            fontSize = 24.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        ),
-                        placeholder = {
-                            Text(
-                                text = "Content...",
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-                            )
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                    ) {
+                        currentState.content.forEachIndexed { index, contentItem ->
+                            item(key = index) {
+                                when (contentItem) {
+                                    is ContentItem.Image -> {
+                                        TextContent(
+                                            text = contentItem.url,
+                                            onTextChanged = {}
+                                        )
+                                    }
+
+                                    is ContentItem.Text -> {
+                                        TextContent(
+                                            text = contentItem.content,
+                                            onTextChanged = {
+                                                viewModel.processCommand(
+                                                    CreationNoteCommand.InputContent(
+                                                        content = it,
+                                                        index = index
+                                                    )
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
+                            }
                         }
-                    )
+                    }
                     Button(
-                        modifier = Modifier.fillMaxWidth()
-                            .padding(horizontal = 10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
                         onClick = {
                             viewModel.processCommand(CreationNoteCommand.Save)
                         },
@@ -184,10 +194,44 @@ fun CreateNoteScreen(
                 }
             }
         }
+
         CreationNoteState.Finished -> {
             LaunchedEffect(key1 = Unit) {
                 onFinished()
             }
         }
     }
+}
+
+@Composable
+private fun TextContent(
+    modifier: Modifier = Modifier,
+    text: String,
+    onTextChanged: (String) -> Unit
+) {
+    TextField(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp),
+        value = text,
+        onValueChange = onTextChanged,
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        ),
+        textStyle = TextStyle(
+            fontSize = 24.sp,
+            color = MaterialTheme.colorScheme.onSurface
+        ),
+        placeholder = {
+            Text(
+                text = "Content...",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+            )
+        }
+    )
 }

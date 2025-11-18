@@ -1,10 +1,8 @@
 package com.example.mynotes.presentation.screens.creation
 
-import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.mynotes.data.NotesRepositoryImpl
 import com.example.mynotes.domain.AddNoteUseCase
 import com.example.mynotes.domain.ContentItem
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateNoteViewModel @Inject constructor(
-    private val addNoteUseCase : AddNoteUseCase
+    private val addNoteUseCase: AddNoteUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<CreationNoteState>(CreationNoteState.Creation())
@@ -31,12 +29,19 @@ class CreateNoteViewModel @Inject constructor(
             is CreationNoteCommand.InputContent -> {
                 _state.update { previous ->
                     if (previous is CreationNoteState.Creation) {
+                        val newContent = previous.content
+                            .mapIndexed { index, contentItem ->
+                                if (index == command.index && contentItem is ContentItem.Text) {
+                                    contentItem.copy(content = command.content)
+                                } else {
+                                    contentItem
+                                }
+                            }
                         previous.copy(
-                            content = command.content,
-                            isSaveEnable = previous.content.isNotBlank() && previous.title.isNotBlank()
+                            content = newContent
                         )
                     } else {
-                        CreationNoteState.Creation(content = command.content)
+                        previous
                     }
                 }
             }
@@ -45,27 +50,47 @@ class CreateNoteViewModel @Inject constructor(
                 _state.update { previous ->
                     if (previous is CreationNoteState.Creation) {
                         previous.copy(
-                            title = command.title,
-                            isSaveEnable = previous.content.isNotBlank() && previous.title.isNotBlank()
+                            title = command.title
                         )
                     } else {
-                        CreationNoteState.Creation(title = command.title)
+                        previous
                     }
                 }
             }
+
 
             CreationNoteCommand.Save -> {
                 viewModelScope.launch {
                     _state.update { previous ->
                         if (previous is CreationNoteState.Creation) {
                             val title = previous.title
-                            val content = ContentItem.Text(content =  previous.content)
-                            //temp listof()
-                            addNoteUseCase(title = title, listOf(content))
+                            val content = previous.content.filter {
+                                it !is ContentItem.Text || it.content.isNotBlank()
+                            }
+                            addNoteUseCase(title = title, content = content)
                             CreationNoteState.Finished
                         } else {
                             previous
                         }
+                    }
+                }
+            }
+
+            is CreationNoteCommand.AddImage -> {
+                _state.update { previousState ->
+                    if (previousState is CreationNoteState.Creation) {
+                        previousState.content.toMutableList().apply {
+                            val lastItem = last()
+                            if(lastItem is ContentItem.Text && lastItem.content.isBlank()) {
+                                removeAt(lastIndex)
+                            }
+                            add(ContentItem.Image(url = command.uri.toString()))
+                            add(ContentItem.Text(""))
+                        }.let {
+                            previousState.copy(content = it)
+                        }
+                    } else {
+                        previousState
                     }
                 }
             }
@@ -78,7 +103,9 @@ sealed interface CreationNoteCommand {
 
     data class InputTitle(val title: String) : CreationNoteCommand
 
-    data class InputContent(val content: String) : CreationNoteCommand
+    data class InputContent(val content: String, val index: Int) : CreationNoteCommand
+
+    data class AddImage(val uri: Uri) : CreationNoteCommand
 
     data object Save : CreationNoteCommand
 
@@ -89,9 +116,22 @@ sealed interface CreationNoteState {
 
     data class Creation(
         val title: String = "",
-        val content: String = "",
-        val isSaveEnable: Boolean = false
-    ) : CreationNoteState
+        val content: List<ContentItem> = listOf(ContentItem.Text(""))
+    ) : CreationNoteState {
+
+        val isSaveEnable: Boolean
+            get() {
+                return when {
+                    title.isBlank() -> false
+                    content.isEmpty() -> false
+                    else -> {
+                        content.any {
+                            it !is ContentItem.Text || it.content.isNotBlank()
+                        }
+                    }
+                }
+            }
+    }
 
     data object Finished : CreationNoteState
 }
