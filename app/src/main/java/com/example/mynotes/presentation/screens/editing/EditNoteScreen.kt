@@ -3,11 +3,15 @@
 package com.example.mynotes.presentation.screens.editing
 
 import android.content.Context
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -15,6 +19,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -36,7 +41,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mynotes.domain.ContentItem
+import com.example.mynotes.presentation.screens.components.Content
 import com.example.mynotes.presentation.screens.creation.CreationNoteCommand
+import com.example.mynotes.presentation.ui.theme.CustomIcons
 
 @Composable
 fun EditNoteScreen(
@@ -51,6 +58,15 @@ fun EditNoteScreen(
 ) {
     val state = viewModel.state.collectAsState()
     val currentState = state.value
+
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = {uri ->
+            uri?.let {
+                viewModel.processCommand(EditNoteCommand.AddImage(it))
+            }
+        }
+    )
 
     when (currentState) {
         is EditNoteState.Editing -> {
@@ -94,6 +110,22 @@ fun EditNoteScreen(
                             )
                         }
                     )
+                },
+                floatingActionButton = {
+                    FloatingActionButton(
+                        modifier = Modifier
+                            .padding(vertical = 40.dp),
+                        onClick = { imagePicker.launch("image/*") },
+                        containerColor = MaterialTheme.colorScheme.onPrimary,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        shape = CircleShape
+                    ){
+                        Icon(
+                            imageVector = CustomIcons.AddPhotoAlternate,
+                            contentDescription = "Add photo",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             ) { innerPadding ->
                 Column(
@@ -133,16 +165,19 @@ fun EditNoteScreen(
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    currentState.note.content.filterIsInstance<ContentItem.Text>()
-                        .forEach { contentItem ->
-                            TextContent(
-                                modifier = Modifier.weight(1f),
-                                text = contentItem.content,
-                                onTextChanged = {
-                                    viewModel.processCommand(EditNoteCommand.InputContent(it))
-                                }
-                            )
+                    Content(
+                        modifier = Modifier.weight(1f),
+                        content = currentState.note.content,
+                        onDeleteImageClick = {
+                            viewModel.processCommand(EditNoteCommand.DeleteImage(it))
+                        },
+                        onTextChanged = {index, text ->
+                            viewModel.processCommand(EditNoteCommand.InputContent(
+                                content = text,
+                                index = index
+                            ))
                         }
+                    )
                     Button(
                         modifier = Modifier
                             .fillMaxWidth()
