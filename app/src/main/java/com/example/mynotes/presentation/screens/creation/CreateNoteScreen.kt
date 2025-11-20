@@ -55,6 +55,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.example.mynotes.domain.ContentItem
+import com.example.mynotes.presentation.screens.components.Content
 import com.example.mynotes.presentation.ui.theme.CustomIcons
 
 @Composable
@@ -157,10 +158,13 @@ fun CreateNoteScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Content(
-                        modifier = Modifier.weight(1f)
-                            .padding(24.dp),
+                        modifier = Modifier.weight(1f),
                         content = currentState.content,
-                        onDeleteImageClick = {},
+                        onDeleteImageClick = {
+                            viewModel.processCommand(
+                                CreationNoteCommand.DeleteImage(index = it)
+                            )
+                        },
                         onTextChanged = { index, text ->
                             viewModel.processCommand(
                                 CreationNoteCommand.InputContent(
@@ -195,134 +199,4 @@ fun CreateNoteScreen(
             }
         }
     }
-}
-
-@Composable
-private fun Content(
-    modifier: Modifier = Modifier,
-    content: List<ContentItem>,
-    onDeleteImageClick: (Int) -> Unit,
-    onTextChanged: (Int, String) -> Unit
-) {
-    LazyColumn(
-        modifier = modifier
-    ) {
-        content.forEachIndexed { index, contentItem ->
-            item(key = index) {
-                when (contentItem) {
-                    is ContentItem.Image -> {
-                        val isAlredyDisplayed = index > 0 && content[index - 1] is ContentItem.Image
-                        content.takeIf { !isAlredyDisplayed }
-                            ?.drop(index)
-                            ?.takeWhile { it is ContentItem.Image }
-                            ?.map { (it as ContentItem.Image).url }
-                            ?.let { urls ->
-                                ImageGroup(
-                                    imageUrls = urls,
-                                    onDeleteImageClick = {
-                                        //realize
-                                    }
-                                )
-                            }
-                    }
-
-                    is ContentItem.Text -> {
-                        TextContent(
-                            text = contentItem.content,
-                            onTextChanged = {
-                                onTextChanged(index, it)
-                            }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ImageGroup(
-    modifier: Modifier = Modifier,
-    imageUrls: List<String>,
-    onDeleteImageClick: (Int) -> Unit
-) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        imageUrls.forEachIndexed { index, imageUrl ->
-            ImageContent(
-                modifier = Modifier.weight(1f),
-                imageUrl = imageUrl,
-                onDeleteImageClick = {
-                    onDeleteImageClick(index)
-                }
-            )
-        }
-    }
-}
-
-@Composable
-private fun ImageContent(
-    modifier: Modifier = Modifier,
-    imageUrl: String,
-    onDeleteImageClick: () -> Unit
-) {
-    Box(
-        modifier = modifier
-    ) {
-        AsyncImage(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(shape = RoundedCornerShape(8.dp)),
-            model = imageUrl,
-            contentDescription = "Image from gallery",
-            contentScale = ContentScale.Fit
-        )
-        Icon(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(8.dp)
-                .size(24.dp)
-                .clickable {
-                    onDeleteImageClick()
-                },
-            imageVector = Icons.Default.Close,
-            contentDescription = "Delete image",
-            tint = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
-
-@Composable
-private fun TextContent(
-    modifier: Modifier = Modifier,
-    text: String,
-    onTextChanged: (String) -> Unit
-) {
-    TextField(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp),
-        value = text,
-        onValueChange = onTextChanged,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
-        ),
-        textStyle = TextStyle(
-            fontSize = 24.sp,
-            color = MaterialTheme.colorScheme.onSurface
-        ),
-        placeholder = {
-            Text(
-                text = "Content...",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
-            )
-        }
-    )
 }
